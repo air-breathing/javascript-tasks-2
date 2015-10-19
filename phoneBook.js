@@ -20,7 +20,13 @@ var maxLengthPhone = columnPhone.length;
  * @param {string}email
  */
 module.exports.add = function add(name, phone, email) {
-    if (!(validatePhone(phone) && validateEmail(email))) {
+    if (!validatePhone(phone)) {
+        console.log('Number is not correct');
+        return;
+    }
+
+    if (!validateEmail(email)) {
+        console.log('Email is not correct');
         return;
     }
     var entry = {
@@ -52,8 +58,7 @@ module.exports.add = function add(name, phone, email) {
  */
 function validateEmail(email) {
     var reEmail = /^[\w]{1}[\w\-\.]*@([\w\-А-Яа-я]+\.)*[a-zа-я]{2,4}$/;
-    var matchEmail = email.match(reEmail);
-    if (matchEmail) {
+    if (reEmail.test(email)) {
         return email;
     } else {
         return null;
@@ -69,10 +74,7 @@ function validateEmail(email) {
  */
 function validatePhone(phone) {
     var rePhone = /^(\+{0,1}\d{0,2})? ?((\d{3})|\((\d{3})\)) ?(\d{3}) ?-?(\d) ?-?(\d{3})$/;
-    var matchPhone = phone.match(rePhone);
-    //console.log(match);
-    if (matchPhone) {
-        //return match.slice(1, 2).concat(match.slice(3, 8)).join('');
+    if (rePhone.test(phone)) {
         return phone;
     } else {
         return null;
@@ -176,7 +178,7 @@ function compareEntry(entry1, entry2) {
    Поиск ведется по всем полям.
 */
 module.exports.find = function find(query) {
-    searchInAnyField(printEntry, query);
+    searchInAnyField(query, printEntry);
 };
 
 
@@ -186,34 +188,23 @@ module.exports.find = function find(query) {
  * actionWithEntry принимает два аргумента - регулярку для поиска и элемент,
  * в котором необходимо найти.
  *
- * @param {function}actionWithEntry
  * @param {string}query
+ * @param {function}actionWithEntry
  * @returns {number}
  */
-function searchInAnyField(actionWithEntry, query) {
+function searchInAnyField(query, actionWithEntry) {
     var i;
     var countFieldWithQuery = 0;
-    var regOfQuery = new RegExp(query);
+    var regOfQuery = new RegExp(query, i);
     for (i = 0; i < phoneBook.length; i++) {
-        if (searchQueryInString(regOfQuery, phoneBook[i].name) ||
-            searchQueryInString(regOfQuery, phoneBook[i].phone) ||
-            searchQueryInString(regOfQuery, phoneBook[i].email)) {
+        if (regOfQuery.test(phoneBook[i].name) ||
+            regOfQuery.test(phoneBook[i].phone) ||
+            regOfQuery.test(phoneBook[i].email)) {
             actionWithEntry(i, phoneBook);
             countFieldWithQuery ++;
         }
     }
     return countFieldWithQuery;
-}
-
-/**
- *Ищет в str выражение queryReg;
- *
- * @param {re}queryReg
- * @param {string}str
- * @returns {Array|*}
- */
-function searchQueryInString(queryReg, str) {
-    return str.match(queryReg);
 }
 
 /**
@@ -232,7 +223,7 @@ function printEntry(indexElement, arrayElemnts) {
    Функция удаления записи в телефонной книге.
 */
 module.exports.remove = function remove(query) {
-    console.log(searchInAnyField(deleteEntry, query));
+    console.log(searchInAnyField(query, deleteEntry));
     clearFromNull(phoneBook);
 };
 
@@ -281,39 +272,42 @@ module.exports.importFromCsv = function importFromCsv(filename) {
    Функция вывода всех телефонов в виде ASCII (задача со звёздочкой!).
 */
 module.exports.showTable = function showTable() {
-    //var amount_of_symbol_in_str = 2 + maxLenghtName + 3 + maxLengthEmail + 3 + maxLengthPhone + 2;
-    console.log('╔' + repeatStr('=', (maxLenghtName + 2)) + '╤' +
-        repeatStr('=', (maxLengthPhone + 2)) +
-        '╤' + repeatStr('=', (maxLengthEmail + 2)) + '╗');
-    console.log('║' + ' ' + columnName + repeatStr(' ', maxLenghtName - columnName.length + 1) +
-        '│' + ' ' + columnPhone + repeatStr(' ', maxLengthPhone - columnPhone.length + 1) +
-        '│' + ' ' + columnEmail + repeatStr(' ', maxLengthEmail - columnEmail.length + 1) + '║');
-    console.log('╠' + repeatStr('=', (maxLenghtName + 2)) + '╧' +
-        repeatStr('=', (maxLengthPhone + 2)) +
-        '╧' + repeatStr('=', (maxLengthEmail + 2)) + '╣');
+    const f = require('util').format;
+    console.log('╔%s╤%s╤%s╗',
+                '='.repeat(maxLenghtName + 2),
+                '='.repeat(maxLengthPhone + 2),
+                '='.repeat(maxLengthEmail + 2));
+    console.log('║ %s%s│ %s%s│ %s%s║',
+                columnName, ' '.repeat(maxLenghtName - columnName.length + 1),
+                columnPhone, ' '.repeat(maxLengthPhone - columnPhone.length + 1),
+                columnEmail, ' '.repeat(maxLengthEmail - columnEmail.length + 1));
+    console.log('╠%s╧%s╧%s╣',
+                '='.repeat(maxLenghtName + 2),
+                '='.repeat(maxLengthPhone + 2),
+                '='.repeat(maxLengthEmail + 2));
     var i;
     for (i = 0;i < phoneBook.length - 1; i++) {
-        console.log('║' + ' ' + phoneBook[i].name +
-            repeatStr(' ', maxLenghtName - phoneBook[i].name.length + 1) +
-            '│' + ' ' + phoneBook[i].phone +
-            repeatStr(' ', maxLengthPhone - phoneBook[i].phone.length + 1) +
-            '│' + ' ' + phoneBook[i].email +
-            repeatStr(' ', maxLengthEmail - phoneBook[i].email.length + 1) + '║');
+        console.log('║ %s%s│ %s%s│ %s%s║',
+                    phoneBook[i].name, ' '.repeat(maxLenghtName - phoneBook[i].name.length + 1),
+                    phoneBook[i].phone, ' '.repeat(maxLengthPhone - phoneBook[i].phone.length + 1),
+                    phoneBook[i].email, ' '.repeat(maxLengthEmail - phoneBook[i].email.length + 1));
 
-        console.log('╟' + repeatStr('-', (maxLenghtName + 2)) + '┼' +
-                    repeatStr('-', (maxLengthPhone + 2)) +
-                    '┼' + repeatStr('-', (maxLengthEmail + 2)) + '╢');
+        console.log('╟%s┼%s┼%s╢',
+                    '-'.repeat(maxLenghtName + 2),
+                    '-'.repeat(maxLengthPhone + 2),
+                    '-'.repeat(maxLengthEmail + 2));
     }
-    console.log('║' + ' ' + phoneBook[phoneBook.length - 1].name +
-                repeatStr(' ', maxLenghtName - phoneBook[phoneBook.length - 1].name.length + 1) +
-                '│' + ' ' + phoneBook[phoneBook.length - 1].phone +
-                repeatStr(' ', maxLengthPhone - phoneBook[phoneBook.length - 1].phone.length + 1) +
-                '│' + ' ' + phoneBook[phoneBook.length - 1].email +
-                repeatStr(' ', maxLengthEmail - phoneBook[phoneBook.length - 1].email.length + 1) +
-                '║');
-    console.log('╚' + repeatStr('=', (maxLenghtName + 2)) + '╧' +
-                repeatStr('=', (maxLengthPhone + 2)) +
-                '╧' + repeatStr('=', (maxLengthEmail + 2)) + '╝');
+    console.log('║ %s%s│ %s%s│ %s%s║',
+                phoneBook[phoneBook.length - 1].name,
+                ' '.repeat(maxLenghtName - phoneBook[phoneBook.length - 1].name.length + 1),
+                phoneBook[phoneBook.length - 1].phone,
+                ' '.repeat(maxLengthPhone - phoneBook[phoneBook.length - 1].phone.length + 1),
+                phoneBook[phoneBook.length - 1].email,
+                ' '.repeat(maxLengthEmail - phoneBook[phoneBook.length - 1].email.length + 1));
+    console.log('╚%s╧%s╧%s╝',
+                '='.repeat(maxLenghtName + 2),
+                '='.repeat(maxLengthPhone + 2),
+                '='.repeat(maxLengthEmail + 2));
 };
 
 
