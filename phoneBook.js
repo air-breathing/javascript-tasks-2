@@ -58,11 +58,7 @@ module.exports.add = function add(name, phone, email) {
  */
 function validateEmail(email) {
     var reEmail = /^[\w]{1}[\w\-\.]*@([\w\-А-Яа-я]+\.)*[a-zа-я]{2,4}$/;
-    if (reEmail.test(email)) {
-        return email;
-    } else {
-        return null;
-    }
+    return reEmail.test(email);
 }
 
 /**
@@ -74,11 +70,7 @@ function validateEmail(email) {
  */
 function validatePhone(phone) {
     var rePhone = /^(\+{0,1}\d{0,2})? ?((\d{3})|\((\d{3})\)) ?(\d{3}) ?-?(\d) ?-?(\d{3})$/;
-    if (rePhone.test(phone)) {
-        return phone;
-    } else {
-        return null;
-    }
+    return rePhone.test(phone);
 }
 
 /**
@@ -197,9 +189,10 @@ function searchInAnyField(query, actionWithEntry) {
     var countFieldWithQuery = 0;
     var regOfQuery = new RegExp(query, i);
     for (i = 0; i < phoneBook.length; i++) {
-        if (regOfQuery.test(phoneBook[i].name) ||
-            regOfQuery.test(phoneBook[i].phone) ||
-            regOfQuery.test(phoneBook[i].email)) {
+        var testedString = phoneBook[i].name + ' ' +
+                            phoneBook[i].phone + ' ' +
+                            phoneBook[i].email;
+        if (regOfQuery.test(testedString)) {
             actionWithEntry(i, phoneBook);
             countFieldWithQuery ++;
         }
@@ -272,43 +265,70 @@ module.exports.importFromCsv = function importFromCsv(filename) {
    Функция вывода всех телефонов в виде ASCII (задача со звёздочкой!).
 */
 module.exports.showTable = function showTable() {
-    const f = require('util').format;
-    console.log('╔%s╤%s╤%s╗',
-                '='.repeat(maxLenghtName + 2),
-                '='.repeat(maxLengthPhone + 2),
-                '='.repeat(maxLengthEmail + 2));
-    console.log('║ %s%s│ %s%s│ %s%s║',
-                columnName, ' '.repeat(maxLenghtName - columnName.length + 1),
-                columnPhone, ' '.repeat(maxLengthPhone - columnPhone.length + 1),
-                columnEmail, ' '.repeat(maxLengthEmail - columnEmail.length + 1));
-    console.log('╠%s╧%s╧%s╣',
-                '='.repeat(maxLenghtName + 2),
-                '='.repeat(maxLengthPhone + 2),
-                '='.repeat(maxLengthEmail + 2));
+    printHead();
+    printPhoneNotes();
+};
+
+function printHead(){
+    printHighBoldBorder();
+    printHeadValues();
+    printAverageBoldBorder();
+}
+
+function printPhoneNotes(){
     var i;
     for (i = 0;i < phoneBook.length - 1; i++) {
-        console.log('║ %s%s│ %s%s│ %s%s║',
-                    phoneBook[i].name, ' '.repeat(maxLenghtName - phoneBook[i].name.length + 1),
-                    phoneBook[i].phone, ' '.repeat(maxLengthPhone - phoneBook[i].phone.length + 1),
-                    phoneBook[i].email, ' '.repeat(maxLengthEmail - phoneBook[i].email.length + 1));
+        printValues(phoneBook[i].name, phoneBook[i].phone, phoneBook[i].email);
+        printBorder();
 
-        console.log('╟%s┼%s┼%s╢',
-                    '-'.repeat(maxLenghtName + 2),
-                    '-'.repeat(maxLengthPhone + 2),
-                    '-'.repeat(maxLengthEmail + 2));
     }
-    console.log('║ %s%s│ %s%s│ %s%s║',
-                phoneBook[phoneBook.length - 1].name,
-                ' '.repeat(maxLenghtName - phoneBook[phoneBook.length - 1].name.length + 1),
+    printValues(phoneBook[phoneBook.length - 1].name,
                 phoneBook[phoneBook.length - 1].phone,
-                ' '.repeat(maxLengthPhone - phoneBook[phoneBook.length - 1].phone.length + 1),
-                phoneBook[phoneBook.length - 1].email,
-                ' '.repeat(maxLengthEmail - phoneBook[phoneBook.length - 1].email.length + 1));
+                phoneBook[phoneBook.length - 1].email);
+    printBottomBoldBorder();
+}
+
+function printValues(val1, val2, val3){
+    console.log('║ %s%s│ %s%s│ %s%s║',
+        val1, ' '.repeat(maxLenghtName - val1.length + 1),
+        val2, ' '.repeat(maxLengthPhone - val2.length + 1),
+        val3, ' '.repeat(maxLengthEmail - val3.length + 1));
+}
+
+function printHighBoldBorder() {
+    console.log('╔%s╤%s╤%s╗',
+        '='.repeat(maxLenghtName + 2),
+        '='.repeat(maxLengthPhone + 2),
+        '='.repeat(maxLengthEmail + 2));
+}
+
+function printBottomBoldBorder() {
     console.log('╚%s╧%s╧%s╝',
-                '='.repeat(maxLenghtName + 2),
-                '='.repeat(maxLengthPhone + 2),
-                '='.repeat(maxLengthEmail + 2));
-};
+        '='.repeat(maxLenghtName + 2),
+        '='.repeat(maxLengthPhone + 2),
+        '='.repeat(maxLengthEmail + 2));
+}
+
+function printHeadValues() {
+    console.log('║ %s%s│ %s%s│ %s%s║',
+        columnName, ' '.repeat(maxLenghtName - columnName.length + 1),
+        columnPhone, ' '.repeat(maxLengthPhone - columnPhone.length + 1),
+        columnEmail, ' '.repeat(maxLengthEmail - columnEmail.length + 1));
+}
+
+function printAverageBoldBorder() {
+    console.log('╠%s╧%s╧%s╣',
+        '='.repeat(maxLenghtName + 2),
+        '='.repeat(maxLengthPhone + 2),
+        '='.repeat(maxLengthEmail + 2));
+}
+
+function printBorder(){
+    console.log('╟%s┼%s┼%s╢',
+        '-'.repeat(maxLenghtName + 2),
+        '-'.repeat(maxLengthPhone + 2),
+        '-'.repeat(maxLengthEmail + 2));
+}
 
 
 /**
